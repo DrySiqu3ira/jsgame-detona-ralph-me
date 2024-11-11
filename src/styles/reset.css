@@ -2,6 +2,16 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  /* font-family: "Bebas Neue", sans-serif; */
+}
+
+/* Estilo para a fonte "Press Start 2P" */
+.press-start-2p-regular {
+  font-family: "Press Start 2P", serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+/* Definindo a fonte "Press Start 2P" para o body */
+body {
   font-family: "Press Start 2P", cursive;
 }

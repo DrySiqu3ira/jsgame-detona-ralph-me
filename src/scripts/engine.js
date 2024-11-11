@@ -4,34 +4,47 @@ const state = {
     enemy: document.querySelector(".enemy"),
     timeLeft: document.querySelector("#time-left"),
     score: document.querySelector("#score"),
+    livesContainer: document.querySelector(".menu-lives"),
   },
   values: {
     gameVelocity: 1000,
     hitPosition: 0,
     result: 0,
-    curretTime: 60,
+    currentTime: 60,
+    lives: 3,
   },
   actions: {
-    timerId: setInterval(randomSquare, 1000),
-    countDownTimerId: setInterval(countDown, 1000),
+    timerId: null,
+    countDownTimerId: null,
   },
 };
 
 function countDown() {
-  state.values.curretTime--;
-  state.view.timeLeft.textContent = state.values.curretTime;
+  state.values.currentTime--;
+  state.view.timeLeft.textContent = state.values.currentTime;
 
-  if (state.values.curretTime <= 0) {
+  if (state.values.currentTime <= 0) {
     clearInterval(state.actions.countDownTimerId);
     clearInterval(state.actions.timerId);
-    alert("Game Over! O seu resultado foi: " + state.values.result);
+
+    if (state.values.result > 10) {
+      playSound("victory");
+      alert("Você ganhou! O seu resultado foi: " + state.values.result);
+    } else {
+      playSound("gameover");
+      alert("Game Over! O seu resultado foi: " + state.values.result);
+    }
   }
 }
 
 function playSound(audioName) {
-  let audio = new Audio(`./src/audios/${audioName}.m4a`);
-  audio.volume = 0.2;
-  audio.play();
+  try {
+    const audio = new Audio(`./src/audios/${audioName}.m4a`);
+    audio.volume = 0.2;
+    audio.play();
+  } catch (error) {
+    console.error("Erro ao tentar tocar o som:", error);
+  }
 }
 
 function randomSquare() {
@@ -39,13 +52,13 @@ function randomSquare() {
     square.classList.remove("enemy");
   });
 
-  let randomNumber = Math.floor(Math.random() * 9);
-  let randomSquare = state.view.squares[randomNumber];
+  const randomNumber = Math.floor(Math.random() * 9);
+  const randomSquare = state.view.squares[randomNumber];
   randomSquare.classList.add("enemy");
   state.values.hitPosition = randomSquare.id;
 }
 
-function addListenerHitBox() {
+function addListenerHitbox() {
   state.view.squares.forEach((square) => {
     square.addEventListener("mousedown", () => {
       if (square.id === state.values.hitPosition) {
@@ -53,13 +66,42 @@ function addListenerHitBox() {
         state.view.score.textContent = state.values.result;
         state.values.hitPosition = null;
         playSound("hit");
+      } else {
+        state.values.lives--;
+        updateLives();
+
+        if (state.values.lives <= 0) {
+          clearInterval(state.actions.countDownTimerId);
+          clearInterval(state.actions.timerId);
+          playSound("gameover");
+          alert(
+            "Game Over! Você perdeu todas as vidas. Sua pontuação final foi: " +
+              state.values.result
+          );
+        } else {
+          playSound("wrong");
+        }
       }
     });
   });
 }
 
-function initialize() {
-  addListenerHitBox();
+function updateLives() {
+  state.view.livesContainer.innerHTML = "";
+
+  for (let i = 0; i < state.values.lives; i++) {
+    let lifeImage = document.createElement("img");
+    lifeImage.src = "./src/images/player.png";
+    lifeImage.alt = "Vida do Jogador";
+    state.view.livesContainer.appendChild(lifeImage);
+  }
 }
 
-initialize();
+function init() {
+  state.actions.timerId = setInterval(randomSquare, state.values.gameVelocity);
+  state.actions.countDownTimerId = setInterval(countDown, 1000);
+  addListenerHitbox();
+  updateLives();
+}
+
+init();
